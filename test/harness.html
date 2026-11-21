@@ -22,6 +22,7 @@
         wayback: { firstSeen: '20090412000000', latest: null },
         dns: { A: ['93.184.216.34'], MX: ['10 mail.example.test.'] },
         checkLinks: {},
+        pageSpeed: { error: "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service 'pagespeedonline.googleapis.com' for consumer 'project_number:583797351490'.", kind: 'quota', usedKey: false },
         keywordMetrics: { keyword: 'espresso machines', gl: 'us', hl: 'en', demand: 70, tier: 'High', range: '10K–100K', parts: { autocomplete: 70, crossPlatform: 100, wikipedia: 47 },
           depth: { prefix: 2, position: 9, length: 17 }, wiki: { title: 'Espresso machine', url: 'https://en.wikipedia.org/wiki/Espresso_machine', avgMonthlyViews: 2201, match: 'close', series: [3000, 2800, 2600, 2900, 2400, 2300, 2200, 2500, 2100, 2000, 2300, 2201].map((v, i) => ({ month: '2025' + String(i + 1).padStart(2, '0'), views: v })) },
           cross: { youtube: true, duckduckgo: true, amazon: false }, intent: 'informational', words: 2, type: 'head', difficulty: null },
@@ -71,6 +72,7 @@
         d.querySelector(`[data-tab="${shot}"]`)?.click();
         await wait(300);
         if (shot === 'keywords') { d.querySelector('#kwGo').click(); await wait(400); d.querySelector('#kdRun')?.click(); }
+        if (shot === 'speed') { d.querySelector('[data-s="mobile"]')?.click(); }
         if (shot === 'links') { d.querySelector('#linkSeg [data-f="all"]')?.click(); }
       }, 400);
     };

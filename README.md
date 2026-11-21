@@ -93,7 +93,7 @@ Most SEO toolbars want a monthly subscription, an account, or an API key before 
 - **HTTP status and the full redirect chain**, captured while the page loads. The toolbar badge turns green, amber or red at a glance.
 - Response and **security headers**, and a **robots.txt tester** for Googlebot, Bingbot, **GPTBot**, CCBot and `*`.
 - Sitemap discovery, hreflang checks, mixed content, resource weight, render-blocking scripts and **tech-stack detection** (WordPress, Shopify, Next.js, GA4, GTM and more).
-- **Real Core Web Vitals** from your own visit (LCP, CLS, INP, FCP, TTFB), plus a one-click **Lighthouse** test.
+- **Real Core Web Vitals** from your own visit (LCP, CLS, INP, FCP, TTFB), plus a one-click **Lighthouse** test. Results are saved for 12 hours, with a no-sign-in fallback when Google's shared quota runs out.
 
 ### 🌐 Domain intel
 - **Tranco popularity rank**, **domain age**, registrar and expiry (RDAP), **Wayback Machine** first-seen date and DNS records.
@@ -189,6 +189,17 @@ Page content never does. The extension calls these public endpoints, and only wh
 The broken-link checker requests the page's own links, and **Verify links** requests the referring pages.
 
 The **local link graph** records which external sites the pages you visit link to (URL, anchor text, rel). It skips search engines, local addresses and pages with a password field, and stays in `chrome.storage.local`. You can switch it off or delete it in Settings.
+</details>
+
+<details>
+<summary><b>The speed test says "Quota exceeded". What now?</b></summary>
+
+Without an API key, the Lighthouse test uses Google PageSpeed's **shared** daily quota, which every keyless caller worldwide draws from. Some days it runs out before the day ends; it resets at midnight Pacific time. When that happens, the Speed tab gives you two options:
+
+- **Run it on pagespeed.web.dev:** the same Lighthouse test on Google's website, free and with no sign-in.
+- **Add your own free API key** in Settings for a private daily quota. Creating a key needs a Google account. The key is optional, stays on your computer and is sent only to googleapis.com.
+
+Your real Core Web Vitals (measured in your own browser) don't need a quota and always work.
 </details>
 
 <details>

@@ -595,24 +595,51 @@ const renderers = {
         </div>
         ${v.lcpEl ? `<div class="small muted" style="margin-top:8px">LCP element: <span class="mono">${esc(v.lcpEl)}</span></div>` : ''}
       </div>
-      <div class="card"><h3>Lighthouse lab test <span class="sub">Google PageSpeed public endpoint · no key needed · ~20–60s</span></h3>
-        <div class="toolbar"><button class="btn primary" data-s="mobile">Run mobile</button><button class="btn" data-s="desktop">Run desktop</button></div>
-        <div id="psiOut" class="muted small">Only public URLs can be tested. The shared free quota can occasionally be exhausted — just retry later.</div>
+      <div class="card"><h3>Lighthouse lab test <span class="sub">via Google PageSpeed · ~20–60s</span></h3>
+        <div class="toolbar">
+          <button class="btn primary" data-s="mobile">Run mobile</button><button class="btn" data-s="desktop">Run desktop</button>
+          <span class="spacer"></span>
+          <a class="btn" id="psiWeb" target="_blank" rel="noopener">Open on pagespeed.web.dev ↗</a>
+        </div>
+        <div id="psiOut" class="muted small">Only public URLs can be tested. Results are cached for 12 hours.</div>
       </div>`;
-    el.querySelectorAll('[data-s]').forEach((btn) => (btn.onclick = async () => {
+    const psiWeb = (strategy = 'mobile') => `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(state.data.basics.url)}&form_factor=${strategy}`;
+    $('#psiWeb').href = psiWeb();
+    el.querySelectorAll('[data-s]').forEach((btn) => (btn.onclick = async (ev) => {
       const out = $('#psiOut');
+      const strategy = btn.dataset.s;
+      $('#psiWeb').href = psiWeb(strategy);
       el.querySelectorAll('[data-s]').forEach((b2) => (b2.disabled = true));
       out.innerHTML = '<div class="spinner" style="margin:10px auto"></div><div style="text-align:center">Running Lighthouse…</div>';
-      const r = await send('pageSpeed', { url: state.data.basics.url, strategy: btn.dataset.s });
+      const r = await send('pageSpeed', { url: state.data.basics.url, strategy, fresh: ev.shiftKey });
       el.querySelectorAll('[data-s]').forEach((b2) => (b2.disabled = false));
-      if (r.error) { out.innerHTML = `<span class="pill bad">${esc(r.error)}</span>`; return; }
+      if (r.error) {
+        out.classList.remove('muted');
+        const web = `<a class="btn primary" href="${esc(psiWeb(strategy))}" target="_blank" rel="noopener">Run it on pagespeed.web.dev ↗</a>`;
+        const settings = '<button class="btn" id="psiSettings">Add your own key in Settings</button>';
+        const msg = {
+          quota: r.usedKey
+            ? `<b>Your API key's daily quota is used up.</b> It resets at midnight Pacific time. You can still run the test on Google's website, free and with no sign-in.`
+            : `<b>Google's free shared quota is used up for today.</b> Without an API key, everyone calling PageSpeed shares one daily allowance, and it has run out. It resets at midnight Pacific time.<br><br>You can still run the same test on Google's website, free and with no sign-in, or add your own free API key to get a private quota.`,
+          key: `<b>Google rejected your PageSpeed API key.</b> Check it in Settings, or that the PageSpeed Insights API is enabled for it. Clear the key to fall back to the shared quota.`,
+          page: `<b>Lighthouse couldn't load this page.</b> It only tests public URLs. Pages behind a login, on localhost, or that block Google's servers can't be tested.`,
+          network: `<b>${esc(r.error)}</b>`,
+          other: `<b>PageSpeed returned an error.</b>`
+        }[r.kind || 'other'];
+        out.innerHTML = `<div class="small" style="margin-bottom:8px">${msg}</div>
+          <div class="toolbar" style="margin:0">${web}${r.kind === 'quota' && !r.usedKey || r.kind === 'key' ? settings : ''}</div>
+          <details style="margin-top:6px"><summary class="small muted">Error from Google</summary><pre class="json">${esc(r.error)}</pre></details>`;
+        const s = $('#psiSettings'); if (s) s.onclick = () => chrome.runtime.openOptionsPage();
+        return;
+      }
       const sc = (x) => (x >= 90 ? 'good' : x >= 50 ? 'warn' : 'bad');
       out.classList.remove('muted');
       out.innerHTML = `
         <div class="grid" style="margin-bottom:10px">${Object.entries(r.scores).map(([k, x]) => `<div class="stat vital ${sc(x)}"><div class="v">${x}</div><div class="l">${esc(k)}</div></div>`).join('')}</div>
         <table><tbody>${Object.values(r.lab).filter(Boolean).map((a) => `<tr><td>${esc(a.title)}</td><td class="num"><span class="pill ${sc((a.score || 0) * 100)}">${esc(a.value)}</span></td></tr>`).join('')}</tbody></table>
         ${Object.keys(r.field).length ? `<h4>Field data (Chrome UX Report, p75)</h4><div class="counts">${Object.entries(r.field).map(([k, f]) => `<span class="pill ${f.category === 'FAST' ? 'good' : f.category === 'AVERAGE' ? 'warn' : 'bad'}">${esc(k.replace(/_/g, ' ').toLowerCase())}: ${f.p75}</span>`).join('')}</div>` : '<p class="muted">No real-user field data for this URL.</p>'}
-        ${r.opportunities.length ? `<h4>Opportunities</h4><ul>${r.opportunities.map((o) => `<li>${esc(o.title)} <span class="muted">${esc(o.value)}</span></li>`).join('')}</ul>` : ''}`;
+        ${r.opportunities.length ? `<h4>Opportunities</h4><ul>${r.opportunities.map((o) => `<li>${esc(o.title)} <span class="muted">${esc(o.value)}</span></li>`).join('')}</ul>` : ''}
+        ${r.cachedAt ? `<div class="small muted">Saved result from ${esc(new Date(r.cachedAt).toLocaleString())}. Shift-click Run to test again.</div>` : ''}`;
     }));
   },
 

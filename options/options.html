@@ -42,6 +42,20 @@
   </div>
 
   <div class="card">
+    <h3>Speed test (optional)</h3>
+    <p><small>The Lighthouse test works without a key, but then it shares one daily quota with everyone else using Google PageSpeed without a key, and that quota can run out. When it does, the Speed tab offers a free, no-sign-in alternative on pagespeed.web.dev.</small></p>
+    <p><small>If you test often, you can add your own <b>free</b> PageSpeed Insights API key to get a private daily quota. Creating one needs a Google account:
+      <a href="https://developers.google.com/speed/docs/insights/v5/get-started#APIKey" target="_blank" rel="noopener">get a key ↗</a>.
+      The key is stored only on this computer and sent only to googleapis.com.</small></p>
+    <p style="display:flex;gap:8px;align-items:center">
+      <input type="password" id="psiKey" placeholder="Optional: paste your API key" autocomplete="off" spellcheck="false"
+        style="flex:1;font:inherit;padding:6px 10px;border-radius:7px;border:1px solid #d0d5dd;background:transparent;color:inherit">
+      <button id="psiShow" type="button">Show</button>
+    </p>
+    <p><small id="psiState"></small></p>
+  </div>
+
+  <div class="card">
     <h3>Data &amp; privacy</h3>
     <p><small>On-page analysis never leaves your machine. Only these optional public endpoints are contacted, and only when you open the related tab:</small></p>
     <ul>

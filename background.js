@@ -229,21 +229,44 @@ async function dns(host) {
   return res;
 }
 
-// Google PageSpeed Insights public endpoint — works without a key (shared, rate-limited quota).
-async function pageSpeed(url, strategy = 'mobile') {
+// Google PageSpeed Insights API. Without a key every caller worldwide shares one daily quota,
+// which can run out; an optional personal key (Settings) gets its own free quota.
+// Successful results are cached for 12h so repeat views don't spend quota.
+async function pageSpeed(url, strategy = 'mobile', fresh = false) {
+  const { psiKey } = await chrome.storage.local.get('psiKey');
+  const key = (psiKey || '').trim();
+  const cacheKey = CACHE_PREFIX + `psi:${strategy}:${url}`;
+  if (!fresh) {
+    const hit = (await chrome.storage.local.get(cacheKey))[cacheKey];
+    if (hit && Date.now() - hit.at < 12 * 60 * 60 * 1000) return { ...hit.value, cachedAt: new Date(hit.at).toISOString() };
+  }
   const api =
     'https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=' +
     encodeURIComponent(url) +
     '&strategy=' + strategy +
-    '&category=performance&category=accessibility&category=best-practices&category=seo';
-  const r = await fetchWithTimeout(api, {}, 90000);
-  const j = await r.json();
-  if (j.error) return { error: j.error.message || 'PageSpeed error' };
+    '&category=performance&category=accessibility&category=best-practices&category=seo' +
+    (key ? '&key=' + encodeURIComponent(key) : '');
+  let r, j;
+  try {
+    r = await fetchWithTimeout(api, {}, 90000);
+    j = await r.json();
+  } catch (e) {
+    return { error: e.name === 'AbortError' ? 'The test took longer than 90 seconds. Try again or use the web version.' : 'Could not reach PageSpeed: ' + (e.message || e), kind: 'network', usedKey: !!key };
+  }
+  if (j.error) {
+    const msg = j.error.message || 'PageSpeed error';
+    const reasons = (j.error.errors || []).map((x) => x.reason).join(' ') + ' ' + (j.error.status || '');
+    let kind = 'other';
+    if (r.status === 429 || /quota|rateLimit|RESOURCE_EXHAUSTED/i.test(msg + reasons)) kind = 'quota';
+    else if (/API key|keyInvalid|API_KEY_INVALID|PERMISSION_DENIED|SERVICE_DISABLED|has not been used/i.test(msg + reasons)) kind = 'key';
+    else if (/FAILED_DOCUMENT_REQUEST|ERRORED_DOCUMENT_REQUEST|NO_FCP|unable to fetch|Lighthouse returned error/i.test(msg)) kind = 'page';
+    return { error: msg, kind, usedKey: !!key };
+  }
   const cats = j.lighthouseResult?.categories || {};
   const audits = j.lighthouseResult?.audits || {};
   const pick = (id) => audits[id] ? { title: audits[id].title, value: audits[id].displayValue, score: audits[id].score } : null;
   const field = j.loadingExperience?.metrics || {};
-  return {
+  const result = {
     strategy,
     scores: Object.fromEntries(Object.entries(cats).map(([k, v]) => [k, Math.round((v.score || 0) * 100)])),
     lab: {
@@ -262,6 +285,8 @@ async function pageSpeed(url, strategy = 'mobile') {
       .map((a) => ({ title: a.title, value: a.displayValue || '' }))
       .slice(0, 10)
   };
+  await chrome.storage.local.set({ [cacheKey]: { at: Date.now(), value: result } });
+  return result;
 }
 
 // Link status checker: HEAD first, fall back to GET for servers that reject HEAD.
@@ -661,7 +686,7 @@ const handlers = {
   rdap: ({ domain }) => rdap(domain),
   wayback: ({ url }) => wayback(url),
   dns: ({ host }) => dns(host),
-  pageSpeed: ({ url, strategy }) => pageSpeed(url, strategy),
+  pageSpeed: ({ url, strategy, fresh }) => pageSpeed(url, strategy, fresh),
   backlinks: ({ domain, fresh }) => backlinks(domain, fresh),
   keywordMetrics: (m) => keywordMetrics(m),
   async keywordMetricsMany({ keywords, gl, hl }) {
