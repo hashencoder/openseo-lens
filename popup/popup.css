@@ -13,13 +13,28 @@
   --info: #4b74ff;
   --radius: 10px;
   --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --sb-thumb: #c9ced8;
+  --sb-thumb-hover: #a3aab8;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #14171d; --bg2: #1b1f27; --bg3: #252a34; --fg: #e7eaf0; --muted: #98a1b3; --line: #2c323d;
+    --sb-thumb: #3a4150; --sb-thumb-hover: #4f5869;
+    color-scheme: dark;
   }
 }
 * { box-sizing: border-box; }
+
+/* Themed scrollbars: slim rounded thumb, invisible track, brand colour while dragging.
+   (WebKit pseudo-elements on purpose: setting the standard scrollbar-color would disable them in Chrome.) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--sb-thumb); border-radius: 99px; border: 3px solid transparent; background-clip: padding-box; min-height: 32px; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--sb-thumb-hover); }
+::-webkit-scrollbar-thumb:active { background-color: var(--brand); }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-button { display: none; height: 0; width: 0; }
 html, body { margin: 0; }
 body {
   width: 800px; height: 590px; display: flex;
