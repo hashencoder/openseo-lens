@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "OpenSEO Lens",
   "short_name": "SEO Lens",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Free, open-source SEO toolbar, no sign-in: on-page audit, keyword difficulty & demand, backlinks, links, schema, redirects, Core Web Vitals and SERP overlay.",
   "icons": {
     "16": "icons/icon16.png",
