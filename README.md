@@ -11,11 +11,16 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/hashencoder/openseo-lens/releases/latest"><img src="https://img.shields.io/github/v/release/hashencoder/openseo-lens?label=download&color=ff6a13" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-22c55e" alt="MIT licence"></a>
   <img src="https://img.shields.io/badge/price-free%20forever-ff6a13" alt="Free forever">
   <img src="https://img.shields.io/badge/sign--in-not%20required-1a5cff" alt="No sign-in">
   <img src="https://img.shields.io/badge/Chrome%20%7C%20Edge%20%7C%20Brave-Manifest%20V3-555" alt="Manifest V3">
   <img src="https://img.shields.io/badge/dependencies-zero-8b5cf6" alt="Zero dependencies">
+</p>
+
+<p align="center">
+  <a href="https://github.com/hashencoder/openseo-lens/releases/latest"><b>⬇️ Download the latest release</b></a>
 </p>
 
 <p align="center">
@@ -124,11 +129,15 @@ Most SEO toolbars want a monthly subscription, an account, or an API key before 
 
 ## 🚀 Install in 30 seconds
 
-1. **Download** this repository: click the green **Code** button, choose **Download ZIP**, then unzip it.
+1. **[Download the latest release](https://github.com/hashencoder/openseo-lens/releases/latest).** Under **Assets**, click `openseo-lens-v….zip` (not "Source code"), then unzip it.
 2. Open `chrome://extensions` (or `edge://extensions` / `brave://extensions`).
 3. Turn on **Developer mode** (top-right corner).
-4. Click **Load unpacked** and pick the unzipped `openseo-lens` folder.
+4. Click **Load unpacked** and pick the unzipped folder (the one that contains `manifest.json`).
 5. Pin the 🔍 icon, open any website and click it. Shortcut: **`Alt+Shift+S`**.
+
+> 🔄 **Updating:** download the newer release, unzip it over the same folder, then click the reload icon on the extension at `chrome://extensions`. Your settings and saved data are kept.
+>
+> 🧑‍💻 **Prefer the source?** Clone the repo and load the folder directly. The source runs as-is, with no build step.
 
 > 💡 Reload tabs that were already open before you installed, so the extension can capture their HTTP status and redirects.
 
