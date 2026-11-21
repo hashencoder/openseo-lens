@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Dev harness: renders the real popup against a fixture page with a stubbed chrome.* API.
+     From the extension folder run `python -m http.server 8765`, then open http://localhost:8765/test/harness.html -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OpenSEO Lens harness</title>
+  <style>body{margin:0;display:flex;gap:16px;font-family:system-ui;background:#ddd}iframe{border:0;background:#fff}#fx{width:420px;height:640px}#pp{width:800px;height:590px}</style>
+</head>
+<body>
+  <iframe id="fx" src="fixture.html"></iframe>
+  <iframe id="pp"></iframe>
+  <script>
+    function makeStub(result) {
+      const fake = {
+        getTabNet: { chain: [{ url: 'http://example.test/blog/post', status: 301 }], final: { url: result.basics.url, status: 200, statusLine: 'HTTP/1.1 200 OK', ip: '93.184.216.34', ms: 182, headers: { server: 'nginx', 'content-type': 'text/html' } } },
+        fetchText: { ok: true, status: 200, text: 'User-agent: *\nDisallow: /private\nUser-agent: GPTBot\nDisallow: /\nSitemap: https://example.test/sitemap.xml' },
+        trancoRank: { rank: 12345, date: '2026-11-19' },
+        rdap: { domain: 'example.test', registered: '2009-03-01T00:00:00Z', expires: '2027-03-01T00:00:00Z', registrar: 'Example Registrar', nameservers: ['ns1.example.test'], status: ['active'] },
+        wayback: { firstSeen: '20090412000000', latest: null },
+        dns: { A: ['93.184.216.34'], MX: ['10 mail.example.test.'] },
+        checkLinks: {},
+        keywordMetrics: { keyword: 'espresso machines', gl: 'us', hl: 'en', demand: 70, tier: 'High', range: '10K–100K', parts: { autocomplete: 70, crossPlatform: 100, wikipedia: 47 },
+          depth: { prefix: 2, position: 9, length: 17 }, wiki: { title: 'Espresso machine', url: 'https://en.wikipedia.org/wiki/Espresso_machine', avgMonthlyViews: 2201, match: 'close', series: [3000, 2800, 2600, 2900, 2400, 2300, 2200, 2500, 2100, 2000, 2300, 2201].map((v, i) => ({ month: '2025' + String(i + 1).padStart(2, '0'), views: v })) },
+          cross: { youtube: true, duckduckgo: true, amazon: false }, intent: 'informational', words: 2, type: 'head', difficulty: null },
+        keywordIdeas: { seed: 'espresso machines', ideas: [{ keyword: 'espresso machines for home' }, { keyword: 'how do espresso machines work' }, { keyword: 'espresso machines sale' }], questions: ['how do espresso machines work'] },
+        keywordMetricsMany: { 'espresso machines for home': { demand: 62, range: '10K–100K', intent: 'informational' }, 'how do espresso machines work': { demand: 41, range: '1K–10K', intent: 'informational' }, 'espresso machines sale': { demand: 22, range: '100–1K', intent: 'transactional', difficulty: { kd: 58 } } },
+        checkDifficulty: { keyword: 'espresso machines', kd: 64, label: 'Hard', at: '2026-11-20T10:00:00Z', features: { ads: 3, peopleAlsoAsk: true, shopping: true }, weakSpots: [4],
+          rows: [{ position: 1, url: 'https://www.seriouseats.com/x', title: 'The Best Espresso Machines', domain: 'seriouseats.com', tranco: 5400, relevance: 100, strength: 85 }, { position: 4, url: 'https://www.reddit.com/r/espresso/x', title: 'Which machine?', domain: 'reddit.com', tranco: 111, relevance: 30, strength: 28, weak: true }] },
+        backlinks: { domain: 'example.test', fetchedAt: '2026-11-20T10:00:00Z',
+          status: { Wikipedia: { ok: true, count: 1 }, 'Hacker News': { ok: true, count: 1 }, Lobsters: { ok: false, error: 'HTTP 503' }, 'Your browsing': { ok: true, count: 1 } },
+          items: [
+            { source: 'Wikipedia', refUrl: 'https://en.wikipedia.org/wiki/Espresso', refTitle: 'Espresso (en)', target: result.basics.url, rel: 'nofollow' },
+            { source: 'Hacker News', refUrl: 'https://news.ycombinator.com/item?id=1', refTitle: 'Best espresso machines', target: 'https://example.test/', date: '2025-02-01T00:00:00Z', score: 120, anchor: 'Best espresso machines' },
+            { source: 'Your browsing', refUrl: 'https://coffee.example.org/links', refTitle: 'Coffee links', target: result.basics.url, anchor: 'great review', rel: 'follow', verified: 'live', date: '2026-11-19T00:00:00Z' }
+          ] }
+      };
+      return {
+        tabs: { query: async () => [{ id: 1, url: result.basics.url }], create: () => {} },
+        scripting: { executeScript: async ({ files }) => [{ result: files && files[0].includes('analyzer') ? result : 'on' }] },
+        runtime: {
+          lastError: null,
+          openOptionsPage: () => {},
+          sendMessage: (msg, cb) => setTimeout(() => cb({ ok: true, data: fake[msg.type] ?? {} }), 30)
+        }
+      };
+    }
+    const fx = document.getElementById('fx');
+    fx.onload = async () => {
+      const src = await (await fetch('../content/analyzer.js')).text();
+      const result = fx.contentWindow.eval(src);
+      window.__analysis = result;
+      window.__stub = makeStub(result);
+      let html = await (await fetch('../popup/popup.html')).text();
+      html = html.replace('<head>', '<head><base href="' + new URL('../popup/', location.href).href + '"><script>window.chrome = parent.__stub;<\/script>');
+      document.getElementById('pp').srcdoc = html;
+    };
+  </script>
+</body>
+</html>

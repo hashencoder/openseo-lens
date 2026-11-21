@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OpenSEO Lens — Settings</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; color: #1d2330; }
+    @media (prefers-color-scheme: dark) { body { background: #14171d; color: #e7eaf0; } .card { border-color: #2c323d !important; } }
+    h1 { display: flex; align-items: center; gap: 10px; font-size: 22px; }
+    .card { border: 1px solid #e3e6eb; border-radius: 10px; padding: 16px 18px; margin: 14px 0; }
+    label { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; cursor: pointer; }
+    small { color: #667085; display: block; }
+    button { font: inherit; padding: 6px 14px; border-radius: 7px; border: 1px solid #d0d5dd; background: #f6f7f9; cursor: pointer; }
+    #saved { color: #12a150; margin-left: 10px; opacity: 0; transition: .2s; }
+    code { background: rgba(127,127,127,.15); padding: 1px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1><img src="../icons/icon48.png" width="32" height="32" alt=""> OpenSEO Lens</h1>
+  <p>No account, no sign-in, no API keys. Everything runs in your browser; domain data comes from public keyless sources.</p>
+
+  <div class="card">
+    <h3>Search results overlay</h3>
+    <label><input type="checkbox" id="serpOverlay"> <span>Show a metrics bar under Google, Bing and DuckDuckGo results<small>Position, domain, title length, URL depth, HTTPS.</small></span></label>
+    <label><input type="checkbox" id="serpKd"> <span>Show keyword difficulty and demand panel above Google results<small>KD is computed from the top 10 results on the page you are looking at; demand from autocomplete and Wikipedia signals.</small></span></label>
+    <label><input type="checkbox" id="serpRank"> <span>Look up Tranco popularity rank for each result domain<small>Sends result domains (not your query) to tranco-list.eu. Cached for 7 days.</small></span></label>
+  </div>
+
+  <div class="card">
+    <h3>Backlinks</h3>
+    <label><input type="checkbox" id="linkGraph"> <span>Remember outbound links on pages I visit (local link graph)<small>Lets the Backlinks tab show links you've seen yourself. Stored only in this browser and never uploaded. Pages with a password field and search engines are skipped.</small></span></label>
+    <p><small id="lgStats">…</small></p>
+    <button id="clearLg">Delete local link graph</button>
+  </div>
+
+  <div class="card">
+    <h3>Data &amp; privacy</h3>
+    <p><small>On-page analysis never leaves your machine. Only these optional public endpoints are contacted, and only when you open the related tab:</small></p>
+    <ul>
+      <li><code>tranco-list.eu</code> — popularity rank</li>
+      <li><code>rdap.org</code> — domain registration dates</li>
+      <li><code>web.archive.org</code> — Wayback Machine history</li>
+      <li><code>cloudflare-dns.com</code> — DNS records</li>
+      <li><code>googleapis.com/pagespeedonline</code> — Lighthouse test (only when you click Run)</li>
+      <li><code>wikipedia.org</code>, <code>hn.algolia.com</code>, <code>lobste.rs</code>, <code>api.stackexchange.com</code> — backlink sources (Backlinks tab)</li>
+      <li><code>suggestqueries.google.com</code> — keyword ideas (only when you click Get ideas)</li>
+    </ul>
+    <button id="clear">Clear cached domain data</button>
+  </div>
+
+  <div class="card">
+    <h3>Shortcuts</h3>
+    <p><code>Alt+Shift+S</code> open the toolbar · <code>Alt+Shift+H</code> highlight links<br>
+    <small>Change them at <code>chrome://extensions/shortcuts</code>.</small></p>
+  </div>
+
+  <button id="save">Save</button><span id="saved">Saved ✓</span>
+  <script src="options.js"></script>
+</body>
+</html>
