@@ -572,7 +572,7 @@ const renderers = {
       const isXml = r.ok && /<(urlset|sitemapindex)/i.test(r.text || '');
       const urls = isXml ? (r.text.match(/<loc>/gi) || []).length : 0;
       const kind = isXml ? (/<sitemapindex/i.test(r.text) ? 'index' : 'urlset') : '';
-      rows.push(`<div style="margin:4px 0"><span class="pill ${isXml ? 'good' : 'bad'}">${isXml ? `${kind} · ${urls} locs` : r.status || 'error'}</span> ${linkTo(sm)}</div>`);
+      rows.push(`<div style="margin:4px 0"><span class="pill ${isXml ? 'good' : 'bad'}">${isXml ? `${kind} · ${urls} locs` : r.ok ? 'not a sitemap' : r.status ? 'HTTP ' + r.status : 'error'}</span> ${linkTo(sm)}</div>`);
     }
     smBox.classList.remove('muted');
     smBox.innerHTML = rows.join('');
@@ -667,7 +667,7 @@ const renderers = {
           <div class="stat"><div class="v">${verifiedCount ? fmtNum(live.length) : '—'}</div><div class="l">Verified live</div></div>
           <div class="stat"><div class="v">${verifiedCount ? fmtNum(follow.length) : '—'}</div><div class="l">Dofollow</div></div>
           <div class="stat"><div class="v">${dates[0] ? dates[0].slice(0, 4) : '—'}</div><div class="l">Oldest found</div></div>
-          <div class="stat"><div class="v">${dates.length ? dates[dates.length - 1].slice(0, 10) : '—'}</div><div class="l">Newest found</div></div>
+          <div class="stat"><div class="v">${dates.length ? dates[dates.length - 1].slice(0, 7) : '—'}</div><div class="l">Newest found</div></div>
         </div>
         <div class="card"><h3>Sources <span class="sub">fetched ${esc((data.fetchedAt || '').replace('T', ' ').slice(0, 16))} UTC · cached 24h</span></h3>
           <div class="counts">${Object.entries(data.status).map(([k, s]) => `<span class="pill ${s.ok ? (s.count ? 'good' : '') : 'bad'}" title="${esc(s.error || '')}">${esc(k)}: ${s.ok ? s.count : 'failed'}</span>`).join('')}</div>

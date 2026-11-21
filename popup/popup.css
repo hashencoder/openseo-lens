@@ -169,3 +169,6 @@ details summary { cursor: pointer; font-weight: 600; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .links-list a { display: block; padding: 6px 0; border-top: 1px solid var(--line); }
 .links-list a:first-child { border-top: 0; }
+
+select { color: var(--fg); background: var(--bg2); }
+select option { color: var(--fg); background: var(--bg); }

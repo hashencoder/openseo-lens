@@ -14,7 +14,9 @@
     function makeStub(result) {
       const fake = {
         getTabNet: { chain: [{ url: 'http://example.test/blog/post', status: 301 }], final: { url: result.basics.url, status: 200, statusLine: 'HTTP/1.1 200 OK', ip: '93.184.216.34', ms: 182, headers: { server: 'nginx', 'content-type': 'text/html' } } },
-        fetchText: { ok: true, status: 200, text: 'User-agent: *\nDisallow: /private\nUser-agent: GPTBot\nDisallow: /\nSitemap: https://example.test/sitemap.xml' },
+        fetchText: (m) => /sitemap/.test(m.url)
+          ? { ok: true, status: 200, text: '<?xml version="1.0"?><urlset>' + '<url><loc>https://example.test/p</loc></url>'.repeat(148) + '</urlset>' }
+          : { ok: true, status: 200, text: 'User-agent: *\nDisallow: /private\nUser-agent: GPTBot\nDisallow: /\nSitemap: https://example.test/sitemap.xml' },
         trancoRank: { rank: 12345, date: '2026-11-19' },
         rdap: { domain: 'example.test', registered: '2009-03-01T00:00:00Z', expires: '2027-03-01T00:00:00Z', registrar: 'Example Registrar', nameservers: ['ns1.example.test'], status: ['active'] },
         wayback: { firstSeen: '20090412000000', latest: null },
@@ -28,10 +30,11 @@
         checkDifficulty: { keyword: 'espresso machines', kd: 64, label: 'Hard', at: '2026-11-20T10:00:00Z', features: { ads: 3, peopleAlsoAsk: true, shopping: true }, weakSpots: [4],
           rows: [{ position: 1, url: 'https://www.seriouseats.com/x', title: 'The Best Espresso Machines', domain: 'seriouseats.com', tranco: 5400, relevance: 100, strength: 85 }, { position: 4, url: 'https://www.reddit.com/r/espresso/x', title: 'Which machine?', domain: 'reddit.com', tranco: 111, relevance: 30, strength: 28, weak: true }] },
         backlinks: { domain: 'example.test', fetchedAt: '2026-11-20T10:00:00Z',
-          status: { Wikipedia: { ok: true, count: 1 }, 'Hacker News': { ok: true, count: 1 }, Lobsters: { ok: false, error: 'HTTP 503' }, 'Your browsing': { ok: true, count: 1 } },
+          status: { Wikipedia: { ok: true, count: 1 }, 'Hacker News': { ok: true, count: 1 }, Lobsters: { ok: true, count: 1 }, 'Your browsing': { ok: true, count: 1 } },
           items: [
             { source: 'Wikipedia', refUrl: 'https://en.wikipedia.org/wiki/Espresso', refTitle: 'Espresso (en)', target: result.basics.url, rel: 'nofollow' },
             { source: 'Hacker News', refUrl: 'https://news.ycombinator.com/item?id=1', refTitle: 'Best espresso machines', target: 'https://example.test/', date: '2025-02-01T00:00:00Z', score: 120, anchor: 'Best espresso machines' },
+            { source: 'Lobsters', refUrl: 'https://lobste.rs/s/abc123', refTitle: 'Notes on dialing in espresso', target: 'https://example.test/blog/grind', date: '2026-06-11T00:00:00Z', score: 31, anchor: 'grind size guide', rel: 'follow', verified: 'live' },
             { source: 'Your browsing', refUrl: 'https://coffee.example.org/links', refTitle: 'Coffee links', target: result.basics.url, anchor: 'great review', rel: 'follow', verified: 'live', date: '2026-11-19T00:00:00Z' }
           ] }
       };
@@ -41,19 +44,35 @@
         runtime: {
           lastError: null,
           openOptionsPage: () => {},
-          sendMessage: (msg, cb) => setTimeout(() => cb({ ok: true, data: fake[msg.type] ?? {} }), 30)
+          sendMessage: (msg, cb) => setTimeout(() => cb({ ok: true, data: (typeof fake[msg.type] === 'function' ? fake[msg.type](msg) : fake[msg.type]) ?? {} }), 30)
         }
       };
+    }
+    // ?shot=<section> renders only the popup at 0,0 (for README screenshots via headless Chrome)
+    const shot = new URLSearchParams(location.search).get('shot');
+    if (shot) {
+      document.body.style.background = 'transparent';
+      document.getElementById('fx').style.cssText = 'position:absolute;left:-3000px;width:420px;height:640px';
+      document.getElementById('pp').style.cssText = 'position:absolute;left:0;top:0;width:800px;height:590px;border:0';
     }
     const fx = document.getElementById('fx');
     fx.onload = async () => {
       const src = await (await fetch('../content/analyzer.js')).text();
       const result = fx.contentWindow.eval(src);
+      if (shot) result.basics.url = 'https://brewguide.example/blog/best-espresso-machines';
       window.__analysis = result;
       window.__stub = makeStub(result);
       let html = await (await fetch('../popup/popup.html')).text();
       html = html.replace('<head>', '<head><base href="' + new URL('../popup/', location.href).href + '"><script>window.chrome = parent.__stub;<\/script>');
-      document.getElementById('pp').srcdoc = html;
+      const pp = document.getElementById('pp');
+      pp.srcdoc = html;
+      if (shot) pp.onload = () => setTimeout(async () => {
+        const d = pp.contentDocument, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+        d.querySelector(`[data-tab="${shot}"]`)?.click();
+        await wait(300);
+        if (shot === 'keywords') { d.querySelector('#kwGo').click(); await wait(400); d.querySelector('#kdRun')?.click(); }
+        if (shot === 'links') { d.querySelector('#linkSeg [data-f="all"]')?.click(); }
+      }, 400);
     };
   </script>
 </body>
